@@ -1,0 +1,35 @@
+name: ci
+
+# sandbox 用の最小構成。ruleset の必須チェック名（ci-required）と、
+# PR 本文の編集（edited）で再実行されることを確かめるためのもの。
+# 本番では build-checks / trusted-checks に実際の処理が入る。
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  build-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "build-checks placeholder (event=${{ github.event.action }})"
+
+  trusted-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "trusted-checks placeholder (event=${{ github.event.action }})"
+
+  ci-required:
+    runs-on: ubuntu-latest
+    needs: [build-checks, trusted-checks]
+    if: always()
+    steps:
+      - name: Aggregate results
+        env:
+          BUILD: ${{ needs.build-checks.result }}
+          TRUSTED: ${{ needs.trusted-checks.result }}
+        run: |
+          echo "build-checks=$BUILD trusted-checks=$TRUSTED"
+          [ "$BUILD" = "success" ] && [ "$TRUSTED" = "success" ]
